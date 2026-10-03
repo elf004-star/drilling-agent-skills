@@ -1,0 +1,3 @@
+include CONTEXT.md
+recursive-include docs *.md
+recursive-include src/wellbore_cli/skills *.md *.yaml

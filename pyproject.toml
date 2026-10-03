@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wellbore-cli"
+version = "0.1.0"
+description = "A lightweight REST client and progressive-disclosure skill for Wellbore Studio"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+wellbore = "wellbore_cli.cli:main"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["wellbore_cli*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+wellbore_cli = ["skills/wellbore/SKILL.md", "skills/wellbore/agents/*.yaml", "skills/wellbore/references/*.md", "skills/wellbore/assets/*.yaml"]

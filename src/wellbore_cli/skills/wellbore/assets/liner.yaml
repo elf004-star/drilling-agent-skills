@@ -1,0 +1,35 @@
+# 悬挂回接：二开内含尾管和回接筒，三开展示水泥返高。
+# 井深用于开次和套管，垂深用于地层与压力。修改后可直接切换可视化填表。
+wellInfo:
+  wellName: 示例-悬挂回接
+  wellType: straight well
+  deviationAngle_deg: 0
+  totalDepth_m: 3000
+  maxVerticalDepth_m: auto
+
+stratigraphy:
+  第四系: 300
+  砂岩层: 1200
+  泥岩层: 2200
+  目标层: 3000
+drillingFluidAndPressure:
+  - [300, 1.05, [1.10, 1.20], 1.65]
+  - [1200, 1.20, [1.25, 1.40], 1.85]
+  - [2200, 1.45, [1.50, 1.65], 2.05]
+  - [3000, 1.65, [1.70, 1.85], 2.20]
+fluidDensityAxis: [1.0, 2.3]
+holeSections:
+  - sec: [300, 444.5, 一开, auto, slide]
+    casings:
+      - cas: [295, 339.7, 表层套管, auto]
+  - sec: [2200, 311.2, 二开, auto, slide]
+    casings:
+      - cas: [[1000, 2195], 244.5, 悬挂尾管, auto, both]
+        cement: none
+      - cas: [[0, 1000], 250, 回接筒, auto, none]
+        cement: full
+  - sec: [3000, 215.9, 三开, auto, slide]
+    casings:
+      - cas: [3000, 139.7, 油层套管, auto]
+        cement:
+          - [2400, auto, 水泥返高]

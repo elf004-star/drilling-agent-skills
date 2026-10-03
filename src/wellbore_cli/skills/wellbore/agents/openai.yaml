@@ -1,0 +1,4 @@
+interface:
+  display_name: "井身结构图客户端"
+  short_description: "通过 wellbore CLI 校验井数据、生成结构图、管理任务并下载产物"
+  default_prompt: "使用 $wellbore 将我的井数据校验并生成井身结构图，保存图片与规范化输入。"
