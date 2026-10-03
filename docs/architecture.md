@@ -8,6 +8,6 @@ HTTP POST 永不自动重试；GET 查询也保持显式简单轮询，等待有
 
 下载按 64 KiB 流式传输，临时文件与目标同目录，完成后原子发布。已有文件默认拒绝覆盖，并用独占发布保护并发写入；--force 替换目标路径而不改写其符号链接指向的文件。批量产物是逐文件原子操作，不是整目录事务，失败后已完成文件保留，按清单补取。
 
-skill 的三级披露：frontmatter 用于触发；SKILL.md 为简短核心流程与路由；references 按安装、领域、命令、恢复、API 边界分工，assets 保存六个服务案例。资源随 wheel 打包，CLI 的 skill install 安装完全相同的文件。根目录 skills 是源码目录符号链接，避免两份文档漂移。
+skill 的三级披露：frontmatter 用于触发；SKILL.md 为简短核心流程与路由；references 按安装、领域、命令、恢复、API 边界分工，assets 保存六个服务案例。资源随 wheel 打包，CLI 的 skill install 安装完全相同的文件。根目录不设 skills 软链接暴露短路径：Windows 检出时会退化为纯文本文件，ZIP 下载与网页浏览也无法还原软链接，跨平台行为不一致；唯一来源即包资源目录 `src/wellbore_cli/skills`，本身没有漂移风险。
 
 验证使用标准库 unittest：本地 HTTP 测试覆盖真实传输、授权、重定向、失败终态、SSE、输入映射、文件保护；线上测试只读健康/账户/额度、无额度预检和少量完整渲染。密钥不作为 fixture、不落入仓库。另用独立代理按 skill 完成离线场景，验证导航和安全边界。

@@ -71,7 +71,7 @@ wellbore skill install --dir /path/to/skills
 wellbore skill path
 ```
 
-安装复制到 `<dir>/wellbore`，已有目录拒绝覆盖。重新加载技能后调用 `$wellbore`。仓库入口为 [skills/wellbore/SKILL.md](skills/wellbore/SKILL.md)，`skills` 是指向随 wheel 打包的源文件目录的相对符号链接；源码唯一来源位于 `src/wellbore_cli/skills`。技能只按任务需要加载安装、命令、领域、恢复与 API 边界参考。
+安装复制到 `<dir>/wellbore`，已有目录拒绝覆盖。重新加载技能后调用 `$wellbore`。仓库入口为 [src/wellbore_cli/skills/wellbore/SKILL.md](src/wellbore_cli/skills/wellbore/SKILL.md)，该目录是唯一来源，随 wheel 打包。根目录不再放指向它的短路径软链接：Windows 检出时软链接退化为内容是路径文本的普通文件，`skills/...` 打不开，而 ZIP 下载与网页浏览本来就无法还原软链接，跨平台行为不一致。技能只按任务需要加载安装、命令、领域、恢复与 API 边界参考。
 
 ## 开发与验证
 
