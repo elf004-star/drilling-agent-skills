@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wellbore-cli"
-version = "0.1.0rc1"
+version = "0.1.0"
 description = "A lightweight REST client and progressive-disclosure skill for Wellbore Studio"
 readme = "README.md"
 requires-python = ">=3.11"

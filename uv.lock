@@ -4,5 +4,5 @@ requires-python = ">=3.11"
 
 [[package]]
 name = "wellbore-cli"
-version = "0.1.0rc1"
+version = "0.1.0"
 source = { editable = "." }
