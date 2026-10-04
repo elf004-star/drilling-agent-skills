@@ -1,7 +1,10 @@
 name: CLI checks
 on:
   push:
-    tags-ignore: ["v*"]
+    # Filtering on branches rather than tags-ignore: defining only tag filters
+    # makes GitHub skip branch pushes entirely, which silently disables CI.
+    # Tags are not branches, so "v*" tag pushes are excluded by this filter.
+    branches: ["**"]
   pull_request:
   workflow_dispatch:
 jobs:

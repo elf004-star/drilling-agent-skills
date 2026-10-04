@@ -229,6 +229,13 @@ def run(args):
 
 
 def main(argv=None):
+    # Windows falls back to the locale codec (cp1252 and friends) whenever stdout
+    # is redirected or piped, which cannot encode the Chinese help and JSON we
+    # emit. Force UTF-8 on both streams. Test harnesses swap in StringIO, which
+    # has no reconfigure, so the guard keeps that path untouched.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     raw = sys.argv[1:] if argv is None else argv
     machine = "--json" in raw
     args = None

@@ -3,6 +3,8 @@ import io
 import json
 import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import threading
 import unittest
@@ -231,6 +233,14 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("wellInfo", json.loads(out)["yaml"])
         self.assertEqual(Handler.requests, [])
+
+    def test_cli_survives_non_utf8_console_encoding(self):
+        # Reproduces the Windows CI failure: with stdout redirected, Python picks
+        # the locale codec, which cannot encode the Chinese help text.
+        env = dict(os.environ, PYTHONIOENCODING="cp1252")
+        proc = subprocess.run([sys.executable, "-m", "wellbore_cli", "--help"], capture_output=True, env=env)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn("usage: wellbore", proc.stdout.decode("utf-8"))
 
     def test_uncertain_submit_never_retries(self):
         from urllib.error import URLError
