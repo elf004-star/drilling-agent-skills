@@ -1,14 +1,44 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "wellbore-cli"
-version = "0.1.0"
+version = "0.1.0rc1"
 description = "A lightweight REST client and progressive-disclosure skill for Wellbore Studio"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
+license = "PolyForm-Noncommercial-1.0.0"
+license-files = ["LICENSE"]
+authors = [{ name = "elf004-star", email = "1873475824@qq.com" }]
+keywords = [
+    "wellbore",
+    "drilling",
+    "well-structure",
+    "petroleum",
+    "geology",
+    "cli",
+    "rest-client",
+    "agent-skill",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+
+[project.urls]
+Homepage = "https://github.com/elf004-star/drilling-agent-skills"
+Repository = "https://github.com/elf004-star/drilling-agent-skills"
+Issues = "https://github.com/elf004-star/drilling-agent-skills/issues"
+Documentation = "https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/architecture.md"
 
 [project.scripts]
 wellbore = "wellbore_cli.cli:main"

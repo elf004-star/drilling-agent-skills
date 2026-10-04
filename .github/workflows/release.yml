@@ -1,0 +1,182 @@
+name: Release
+
+# Tag push -> TestPyPI -> install from TestPyPI -> [pypi environment approval] -> PyPI.
+# The artifact is built once and never rebuilt, so what was verified is what ships.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Test and build distributions
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Guard tag against declared versions
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pyproject=$(uv run --python 3.11 python -c "import tomllib,pathlib; print(tomllib.loads(pathlib.Path('pyproject.toml').read_text())['project']['version'])")
+          # Read the file rather than importing the package: a stale .pyc whose
+          # recorded (mtime, size) still matches the source silently reports the
+          # old version, and bumping 0.1.0 -> 0.1.1 keeps the file size identical.
+          module=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' src/wellbore_cli/__init__.py)
+          test -n "$module" || { echo "::error::could not parse __version__ from src/wellbore_cli/__init__.py"; exit 1; }
+          echo "tag=$tag pyproject=$pyproject module=$module"
+          test "$tag" = "$pyproject" || { echo "::error::tag $tag != pyproject version $pyproject"; exit 1; }
+          test "$tag" = "$module" || { echo "::error::tag $tag != wellbore_cli.__version__ $module"; exit 1; }
+
+      - name: Run tests
+        run: uv run --python 3.11 python -m unittest discover -s tests -v
+
+      - name: Build distributions
+        run: uv build
+
+      - name: Record version
+        id: meta
+        run: echo "version=$(uv run --python 3.11 python -c 'import wellbore_cli; print(wellbore_cli.__version__)')" >> "$GITHUB_OUTPUT"
+
+      - name: Assert distribution contents and metadata
+        run: |
+          uv run --python 3.11 python - <<'PY'
+          import glob, tarfile, zipfile
+
+          wheel = sorted(glob.glob("dist/*.whl"))[-1]
+          sdist = sorted(glob.glob("dist/*.tar.gz"))[-1]
+
+          zf = zipfile.ZipFile(wheel)
+          names = zf.namelist()
+          metadata = zf.read(next(n for n in names if n.endswith(".dist-info/METADATA"))).decode()
+
+          skills = [
+              "wellbore_cli/skills/wellbore/SKILL.md",
+              "wellbore_cli/skills/wellbore/agents/openai.yaml",
+              "wellbore_cli/skills/wellbore/references/api.md",
+              "wellbore_cli/skills/wellbore/references/commands.md",
+              "wellbore_cli/skills/wellbore/references/domain.md",
+              "wellbore_cli/skills/wellbore/references/recovery.md",
+              "wellbore_cli/skills/wellbore/references/setup.md",
+              "wellbore_cli/skills/wellbore/assets/straight.yaml",
+              "wellbore_cli/skills/wellbore/assets/horizontal.yaml",
+              "wellbore_cli/skills/wellbore/assets/deviated.yaml",
+              "wellbore_cli/skills/wellbore/assets/updip.yaml",
+              "wellbore_cli/skills/wellbore/assets/liner.yaml",
+              "wellbore_cli/skills/wellbore/assets/geology.yaml",
+          ]
+          missing = [s for s in skills if s not in names]
+          assert not missing, f"wheel is missing bundled skill assets: {missing}"
+
+          assert "License-Expression: PolyForm-Noncommercial-1.0.0" in metadata, "PEP 639 license expression missing"
+          # Leading \n: "License-Expression" itself contains the substring "License".
+          assert "\nLicense:" not in metadata, "legacy License field present - setuptools is too old for PEP 639"
+          assert "Requires-Dist:" not in metadata, "unexpected runtime dependency introduced"
+          assert any(n.endswith(".dist-info/licenses/LICENSE") for n in names), "LICENSE not shipped in wheel"
+          assert any(n.endswith(".dist-info/entry_points.txt") for n in names), "console script entry point lost"
+
+          sdist_names = tarfile.open(sdist).getnames()
+          assert any(n.endswith("src/wellbore_cli/skills/wellbore/SKILL.md") for n in sdist_names), "sdist lost skill assets"
+          leaked = [n for n in sdist_names if "/docs/" in n or n.endswith("/CONTEXT.md")]
+          assert not leaked, f"sdist leaked maintainer docs: {leaked}"
+
+          print(f"OK {wheel}: {len(names)} entries; {sdist}: {len(sdist_names)} entries")
+          PY
+
+      - name: Install the built wheel into a clean env and re-run the suite
+        run: |
+          uv venv --python 3.11 /tmp/verify
+          uv pip install --python /tmp/verify/bin/python dist/*.whl
+          /tmp/verify/bin/python -m unittest discover -s tests -v
+          /tmp/verify/bin/wellbore --version
+          /tmp/verify/bin/wellbore skill path
+          /tmp/verify/bin/wellbore skill install --dir /tmp/verify/skills
+          diff -r --exclude=.DS_Store /tmp/verify/skills/wellbore src/wellbore_cli/skills/wellbore
+          for t in straight horizontal deviated updip liner geology; do
+            /tmp/verify/bin/wellbore template "$t" > /dev/null
+          done
+          test "$(uv pip list --python /tmp/verify/bin/python --format=freeze | grep -c .)" = "1"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+
+  testpypi:
+    name: Publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/wellbore-cli
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  verify-testpypi:
+    name: Install the published artifact from TestPyPI
+    needs: [build, testpypi]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: astral-sh/setup-uv@v6
+      - name: Install from the index and smoke-test
+        env:
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          export PATH="$(uv tool dir --bin):$PATH"
+          for attempt in 1 2 3 4 5 6; do
+            if uv tool install --no-cache --python 3.11 \
+                 --index-url https://test.pypi.org/simple/ "wellbore-cli==$VERSION"; then
+              break
+            fi
+            echo "::warning::index not propagated yet (attempt $attempt); retrying"
+            sleep 15
+          done
+          wellbore --version | grep -F "$VERSION"
+          wellbore --help
+          wellbore skill path
+          wellbore skill install --dir /tmp/tp-skills
+          test -f /tmp/tp-skills/wellbore/SKILL.md
+          test -f /tmp/tp-skills/wellbore/assets/geology.yaml
+          wellbore template deviated > /dev/null
+          curl -fsSL "https://test.pypi.org/pypi/wellbore-cli/$VERSION/json" \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin); assert not d["info"]["requires_dist"], d["info"]["requires_dist"]; print("no runtime deps, ok")'
+
+  pypi:
+    name: Publish to PyPI
+    needs: [build, verify-testpypi]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/wellbore-cli
+    permissions:
+      id-token: write
+      attestations: write
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1

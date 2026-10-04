@@ -4,22 +4,23 @@
 
 ## 安装
 
-推荐用 [uv](https://docs.astral.sh/uv/getting-started/installation/) 安装隔离的命令行工具：
+从 PyPI 安装（推荐用 [uv](https://docs.astral.sh/uv/getting-started/installation/) 装成隔离的命令行工具）：
 
 ```sh
-uv tool install --python 3.11 'git+https://github.com/elf004-star/drilling-agent-skills.git'
+uv tool install wellbore-cli
 wellbore --help
 ```
 
-此 Git 安装方式需先将本仓库当前实现推送至远端。当前本地立即可用：
+`pipx install wellbore-cli` 或 `pip install wellbore-cli` 等价。
+
+从源码安装（开发本仓库或使用未发布版本时）：
 
 ```sh
+uv tool install --python 3.11 'git+https://github.com/elf004-star/drilling-agent-skills.git'
 uv tool install --python 3.11 .
 # 或不全局安装
 uv run --python 3.11 wellbore --help
 ```
-
-也支持 `pipx install .` 或 `pip install .`。发布 wheel 后支持 `uv tool install /path/to/wellbore_cli-0.1.0-py3-none-any.whl`。当前未发布到 PyPI，不使用不存在的索引安装命令。
 
 ## 五分钟上手
 
@@ -71,7 +72,7 @@ wellbore skill install --dir /path/to/skills
 wellbore skill path
 ```
 
-安装复制到 `<dir>/wellbore`，已有目录拒绝覆盖。重新加载技能后调用 `$wellbore`。仓库入口为 [src/wellbore_cli/skills/wellbore/SKILL.md](src/wellbore_cli/skills/wellbore/SKILL.md)，该目录是唯一来源，随 wheel 打包。根目录不再放指向它的短路径软链接：Windows 检出时软链接退化为内容是路径文本的普通文件，`skills/...` 打不开，而 ZIP 下载与网页浏览本来就无法还原软链接，跨平台行为不一致。技能只按任务需要加载安装、命令、领域、恢复与 API 边界参考。
+安装复制到 `<dir>/wellbore`，已有目录拒绝覆盖。重新加载技能后调用 `$wellbore`。仓库入口为 [src/wellbore_cli/skills/wellbore/SKILL.md](https://github.com/elf004-star/drilling-agent-skills/blob/main/src/wellbore_cli/skills/wellbore/SKILL.md)，该目录是唯一来源，随 wheel 打包。根目录不再放指向它的短路径软链接：Windows 检出时软链接退化为内容是路径文本的普通文件，`skills/...` 打不开，而 ZIP 下载与网页浏览本来就无法还原软链接，跨平台行为不一致。技能只按任务需要加载安装、命令、领域、恢复与 API 边界参考。
 
 ## 开发与验证
 
@@ -80,4 +81,10 @@ uv run --python 3.11 python -m unittest discover -s tests -v
 uv build
 ```
 
-详见 [架构说明](docs/architecture.md)、[领域上下文](CONTEXT.md) 和 [契约快照](docs/api-contract.md)。线上来源为 [API 文档](https://ccqwell.vip.cpolar.cn/docs) 与 `/openapi.json`。不提供需要网页会话的注册、账户管理、Key 管理或管理员命令；REST 文档没有公开取消端点，因此不伪造取消命令。
+详见 [架构说明](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/architecture.md)、[领域上下文](https://github.com/elf004-star/drilling-agent-skills/blob/main/CONTEXT.md) 和 [契约快照](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/api-contract.md)。线上来源为 [API 文档](https://ccqwell.vip.cpolar.cn/docs) 与 `/openapi.json`。不提供需要网页会话的注册、账户管理、Key 管理或管理员命令；REST 文档没有公开取消端点，因此不伪造取消命令。
+
+## 许可
+
+[PolyForm Noncommercial License 1.0.0](https://github.com/elf004-star/drilling-agent-skills/blob/main/LICENSE) —— 允许个人、研究、教育机构、慈善与政府用途，**禁止商业用途**；商用需另行取得授权。这不是 OSI 认可的开源许可证。
+
+Required Notice: Copyright (c) 2026 elf004-star
