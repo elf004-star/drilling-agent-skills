@@ -69,6 +69,7 @@ jobs:
               "wellbore_cli/skills/wellbore/references/domain.md",
               "wellbore_cli/skills/wellbore/references/recovery.md",
               "wellbore_cli/skills/wellbore/references/setup.md",
+              "wellbore_cli/skills/wellbore/references/transcribe.md",
               "wellbore_cli/skills/wellbore/assets/straight.yaml",
               "wellbore_cli/skills/wellbore/assets/horizontal.yaml",
               "wellbore_cli/skills/wellbore/assets/deviated.yaml",
@@ -158,6 +159,7 @@ jobs:
           wellbore skill install --dir /tmp/tp-skills
           test -f /tmp/tp-skills/wellbore/SKILL.md
           test -f /tmp/tp-skills/wellbore/assets/geology.yaml
+          test -f /tmp/tp-skills/wellbore/references/transcribe.md
           wellbore template deviated > /dev/null
           curl -fsSL "https://test.pypi.org/pypi/wellbore-cli/$VERSION/json" \
             | python3 -c 'import json,sys; d=json.load(sys.stdin); assert not d["info"]["requires_dist"], d["info"]["requires_dist"]; print("no runtime deps, ok")'
