@@ -9,6 +9,8 @@
 - 任务 ID：PNG ddb33a56-b5dd-41c4-9503-b627a7b7863e；SVG f53f0bc4-45e2-4157-b390-ef31d4f55691。测试产物保存于本机 /private/tmp/wellbore-live-output，未加入版本库；线上历史可能按服务清理规则消失。
 - 已构建 wheel 与 sdist；wheel 包含全部 skill 参考与六份资产，无运行时依赖。在临时隔离工具目录实际安装 wheel，验证版本、离线模板与 skill 安装；源码 uv run 入口也已验证。主图 PNG 已做视觉检查。
 
-线上测试不是单元测试的一部分，不在 CI 使用密钥或消耗额度。CI 配置覆盖 Linux/macOS/Windows；当前本机运行证据覆盖 macOS（2026-10-04）与 Windows（2026-10-28），Linux 需远端 CI 执行后确认。GitHub Actions 尚未执行。未发布到 PyPI，也未自动推送源码。
+线上测试不是单元测试的一部分，不在 CI 使用密钥或消耗额度。CI 配置覆盖 Linux/macOS/Windows；当前本机运行证据覆盖 macOS（2026-10-04）与 Windows（2026-10-28）。未发布到 PyPI。
 
-2026-10-28，Windows 10 + Python 3.11.2：`uv run --python 3.11 python -m unittest discover -s tests -v` 28 项通过；`wellbore --help`、`wellbore config show --json` 正常。用合成数据对当前服务执行 normalize，确认 `wellType` 枚举、`keyPoints.hide`、`pilotHoleGuideLine`、套管构件语义，以及总井深/套管越界返回 422 带 path/line；未消耗绘图额度。GitHub Actions 的 Linux/macOS/Windows 矩阵仍待推送后执行。
+2026-10-28，Windows 10 + Python 3.11.2：`uv run --python 3.11 python -m unittest discover -s tests -v` 28 项通过；`wellbore --help`、`wellbore config show --json` 正常。用合成数据对当前服务执行 normalize，确认 `wellType` 枚举、`keyPoints.hide`、`pilotHoleGuideLine`、套管构件语义，以及总井深/套管越界返回 422 带 path/line；未消耗绘图额度。
+
+2026-10-28，GitHub Actions run 40660934806（提交 7bf2c72）：`test (ubuntu-latest)`、`test (macos-latest)`、`test (windows-latest)` 全部 success。
