@@ -81,7 +81,7 @@ uv run --python 3.11 python -m unittest discover -s tests -v
 uv build
 ```
 
-详见 [架构说明](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/architecture.md)、[领域上下文](https://github.com/elf004-star/drilling-agent-skills/blob/main/CONTEXT.md) 和 [契约快照](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/api-contract.md)。线上来源为 [API 文档](https://ccqwell.vip.cpolar.cn/docs) 与 `/openapi.json`。不提供需要网页会话的注册、账户管理、Key 管理或管理员命令；REST 文档没有公开取消端点，因此不伪造取消命令。
+详见 [架构说明](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/architecture.md)、[领域上下文](https://github.com/elf004-star/drilling-agent-skills/blob/main/GLOSSARY.md) 和 [契约快照](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/api-contract.md)。线上来源为 [API 文档](https://ccqwell.vip.cpolar.cn/docs) 与 `/openapi.json`。不提供需要网页会话的注册、账户管理、Key 管理或管理员命令；REST 文档没有公开取消端点，因此不伪造取消命令。
 
 ## 许可
 

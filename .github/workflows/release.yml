@@ -88,7 +88,7 @@ jobs:
 
           sdist_names = tarfile.open(sdist).getnames()
           assert any(n.endswith("src/wellbore_cli/skills/wellbore/SKILL.md") for n in sdist_names), "sdist lost skill assets"
-          leaked = [n for n in sdist_names if "/docs/" in n or n.endswith("/CONTEXT.md")]
+          leaked = [n for n in sdist_names if "/docs/" in n or n.endswith("/GLOSSARY.md")]
           assert not leaked, f"sdist leaked maintainer docs: {leaked}"
 
           print(f"OK {wheel}: {len(names)} entries; {sdist}: {len(sdist_names)} entries")
