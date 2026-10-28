@@ -41,7 +41,7 @@ wellbore quota --json
 ```
 
 `auth clear` 不撤销服务端 Key，环境密钥也不会被删除。更换/撤销 Key 在服务 `/keys` 网页完成。
-`health` 无需密钥，不能证明账户有绘图权限；`quota` 读取实时额度，勿硬编码套餐数字。
+`health`、`validate`、`normalize` 无需密钥；后两者会把井数据发到服务，且都不能证明账户有绘图权限。`render`、`jobs`、`history`、`download`、`account`、`quota` 需要密钥；`quota` 读取实时额度，勿硬编码套餐数字。
 
 ## 代理与 HTTPS
 

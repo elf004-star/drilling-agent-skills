@@ -13,8 +13,9 @@ description: >-
 # 井身结构图
 
 **服务需授权**：`wellbore` 访问作者自建的 Wellbore Studio 实例，API Key 不随技能分发。
-没有配置 Key 时 `health`、`validate`、`render` 都会被拒——先按 [安装与认证](references/setup.md)
-配置，再向作者申领 Key（[仓库 issue](https://github.com/elf004-star/drilling-agent-skills/issues)）。
+`health`、`validate`、`normalize` 无需 Key（validate/normalize 仍会把井数据发到服务）；
+`render`、`jobs`、`history`、`download`、`account`、`quota` 需要 Key——先按
+[安装与认证](references/setup.md) 配置，再向作者申领 Key（[仓库 issue](https://github.com/elf004-star/drilling-agent-skills/issues)）。
 
 ## 先选择最小流程
 

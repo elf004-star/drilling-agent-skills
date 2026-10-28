@@ -77,7 +77,7 @@ REST 提交没有幂等键：客户端不会自动重试提交。POST 超时或�
 npx skills add elf004-star/drilling-agent-skills --skill wellbore
 ```
 
-服务需要授权：`wellbore` 访问的是作者自建的实例，API Key 不随技能分发，需向作者申领（[仓库 issue](https://github.com/elf004-star/drilling-agent-skills/issues)），再按技能里的 `references/setup.md` 配置。
+服务需要授权：`wellbore` 访问的是作者自建的实例，API Key 不随技能分发，需向作者申领（[仓库 issue](https://github.com/elf004-star/drilling-agent-skills/issues)），再按技能里的 `references/setup.md` 配置。`health`、`validate`、`normalize` 无需 Key 即可调用，可以在申领前先校验井数据。
 
 只需本地 CLI 自带的那份技能时，用 `wellbore skill install`：
 
