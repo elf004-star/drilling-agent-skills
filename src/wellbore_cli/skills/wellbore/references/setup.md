@@ -48,6 +48,28 @@ wellbore quota --json
 网络请求遵循环境代理。代理不可用时加 `--no-proxy`；有可用本地 HTTP 代理时可设置 `HTTPS_PROXY` 环境变量（PowerShell：`$env:HTTPS_PROXY=...`；cmd：`set HTTPS_PROXY=...`）。CLI 不直接支持 SOCKS，需使用 HTTP 代理。
 远程只允许 HTTPS；本机 localhost/127.0.0.1/::1 可使用 HTTP。重定向被拒绝，不能绕过该限制转发密钥。
 
+### 握手间歇失败时锁 TLS 1.2
+
+默认服务对 Python（OpenSSL）发出的 TLS 1.3 ClientHello 可能间歇性直接断连，表现为 `网络连接失败`（底层是 `SSLEOFError`、`UNEXPECTED_EOF_WHILE_READING`），同一地址下 `curl` 却正常；换代理或 `--no-proxy` 都不改善。2026-10-28 实测：TLS 1.3 约 2/10 成功，锁定 1.2 后直连与代理均 5/5。
+
+用 OpenSSL 配置把协议版本钉到 1.2，作用域仅限该进程：
+
+```sh
+cat > ~/.config/wellbore/tls12.cnf <<'EOF'
+openssl_conf = ssl_init
+[ssl_init]
+ssl_conf = ssl_sect
+[ssl_sect]
+system_default = system_default_sect
+[system_default_sect]
+MinProtocol = TLSv1.2
+MaxProtocol = TLSv1.2
+EOF
+OPENSSL_CONF=~/.config/wellbore/tls12.cnf wellbore health --json
+```
+
+不要把它全局 `export`：同一台机器上其他 OpenSSL 程序会被一并限制。长期使用可只给该命令包一层函数，如 zsh 中 `wellbore() { OPENSSL_CONF="$HOME/.config/wellbore/tls12.cnf" command wellbore "$@"; }`；Windows 对应 `set OPENSSL_CONF=%USERPROFILE%\.config\wellbore\tls12.cnf`（PowerShell 为 `$env:OPENSSL_CONF=...`）。TLS 1.2 配现代套件仍然安全，只是缺少 1.3 特性；这是线路问题的绕法，服务端修复后应移除。
+
 ## skill 安装
 
 ```sh
