@@ -5,20 +5,32 @@
 `wellbore COMMAND --help` 提供当前版本帮助。通用参数可放根命令或叶子命令：`--json`、`--base-url`、`--key-file`、`--timeout`、`--no-proxy`。用 JSON 字段处理返回值，勿从 stderr 进度提取结构化状态。
 普通 stdout 为一份 JSON；`jobs events --json` 为 JSON Lines。输入支持 .yaml/.yml/.json，`-` 表示 stdin，需 `--input-format yaml|json`，最大 1 MiB。
 
-## 一次出图
+## 一次出图（默认只取主图）
 
 ```sh
 wellbore validate well.yaml --json
-wellbore render well.yaml --image-format png -o output --json
+wellbore render well.yaml --main-only -o output --json
 ```
 
-render 默认预校验、提交一次、轮询、下载文件清单及规范化输入。`--wait-timeout` 默认 180 秒，`--interval` 默认 1 秒，单次请求 `--timeout` 默认 30 秒。所有值须大于零且有限。
+render 默认预校验、提交一次、轮询、下载。`--main-only` 只下载主图 `well_structure_plot.<png|svg>`（与 `--image-format` 一致）；去掉它则下载文件清单及规范化输入。`--wait-timeout` 默认 180 秒，`--interval` 默认 1 秒，单次请求 `--timeout` 默认 30 秒。所有值须大于零且有限。
 产物放在 `output/<archive_id>/`，不覆盖已有文件。`--skip-validation` 省略预校验，仍会由渲染器校验，但坏输入可能已消耗额度，通常不用。
 
-## 分步和批处理
+## 精确命名、单个产物与批处理
+
+render 的主图仍放在 `output/<archive_id>/` 下。要按项目图号精确命名，或只取某个附属文件，走分步：
 
 ```sh
-wellbore jobs submit well.yaml --image-format svg --name '项目名称' --json
+wellbore validate well.yaml --json
+wellbore jobs submit well.yaml --image-format png --name "项目名称" --json
+wellbore jobs wait JOB_ID --json
+wellbore download ARCHIVE_ID --file well_structure_plot.png -o figure.png --json
+```
+
+submit 返回的 `files` 清单列全部产物名，要哪个取哪个。分步路径不代做预校验（预校验是 render 的行为），提交前先 validate，坏输入才不会白耗额度。download 默认写到当前目录的同名文件；`--file zip` 时写 `wellbore-<id>.zip`。
+
+## 任务跟踪
+
+```sh
 wellbore jobs status JOB_ID --json
 wellbore jobs wait JOB_ID --wait-timeout 300 --json
 wellbore jobs events JOB_ID --wait-timeout 300 --json
@@ -43,7 +55,7 @@ normalize 的 stdout 或输出文件是完整 JSON。规范化 YAML 下载可能
 ## 更新现有历史
 
 ```sh
-wellbore render revised.yaml --edit ARCHIVE_ID --name '修订井' -o revised-output --json
+wellbore render revised.yaml --edit ARCHIVE_ID --name "修订井" -o revised-output --json
 ```
 
 edit 成功后更新选定历史，不一定新建记录。下载使用状态的 archive_id，空时才回退 id。此命令修改远程历史且消耗绘图额度，必须属于用户要求的修改范围。客户端不提供收藏、删除、复制项目、管理账户或 API Key 等网页会话操作。

@@ -1,6 +1,8 @@
 # wellbore
 
-井身结构图服务的轻量客户端。Python 3.11+，运行时零第三方依赖，无需安装 matplotlib、字体或服务端代码。内置中文命令帮助、YAML 模板和按需加载的 Codex skill。
+井身结构图服务的轻量客户端。Python 3.11+，运行时零第三方依赖，无需安装 matplotlib、字体或服务端代码。内置中文命令帮助、YAML 模板和按需加载的 Claude Code / Codex skill。
+
+以下示例默认 POSIX shell；Windows PowerShell/cmd 请按本机 shell 调整路径、引号和环境变量写法（`$VAR` ↔ `$env:VAR` / `%VAR%`）。
 
 ## 安装
 
@@ -16,7 +18,7 @@ wellbore --help
 从源码安装（开发本仓库或使用未发布版本时）：
 
 ```sh
-uv tool install --python 3.11 'git+https://github.com/elf004-star/drilling-agent-skills.git'
+uv tool install --python 3.11 "git+https://github.com/elf004-star/drilling-agent-skills.git"
 uv tool install --python 3.11 .
 # 或不全局安装
 uv run --python 3.11 wellbore --help
@@ -31,14 +33,14 @@ wellbore quota
 wellbore template straight -o well.yaml
 # 编辑 well.yaml，替换示例井数据
 wellbore validate well.yaml
-wellbore render well.yaml -o output
+wellbore render well.yaml --main-only -o output
 ```
 
-输出保存到 `output/<archive_id>/`，包括图片、服务实际生成的 CSV 等文件和规范化输入 `well_data.yaml`。保留服务 warnings；不要把示例数据当作用户的实际井数据。
+主图保存到 `output/<archive_id>/`；去掉 `--main-only` 会同时下载服务实际生成的 CSV 等文件和规范化输入 `well_data.yaml`。保留服务 warnings；不要把示例数据当作用户的实际井数据。
 
-临时密钥推荐通过 `WELLBORE_API_KEY` 环境变量或 `--key-file /path/to/key` 传入。避免把密钥直接写在命令行、URL、脚本或仓库。`auth clear` 仅删除本机存储；撤销 Key 在服务网页完成。POSIX 保存文件权限为 0600；Windows 应使用受保护的用户配置目录。
+临时密钥推荐通过 `WELLBORE_API_KEY` 环境变量或 `--key-file <key-file>` 传入。避免把密钥直接写在命令行、URL、脚本或仓库。`auth clear` 仅删除本机存储；撤销 Key 在服务网页完成。POSIX 保存文件权限为 0600；Windows 上 Python 不额外设置 ACL，文件位于用户配置目录（默认 `C:\Users\<user>\.config\wellbore`），请确保该目录仅本人可读。更稳妥的是用环境变量，或把 `--key-file` 放在受 ACL 限制的目录。
 
-基地址默认 `https://ccqwell.vip.cpolar.cn`，可运行 `wellbore config set-url https://your-service.example`。优先级：`--base-url` > `WELLBORE_BASE_URL` > 配置 > 默认值；密钥优先级：显式 `--key-file` > `WELLBORE_API_KEY` > 保存文件。`WELLBORE_CONFIG_DIR` 可隔离多个使用环境。
+基地址默认 `https://ccqwell.vip.cpolar.cn`，可运行 `wellbore config set-url https://your-service.example`。优先级：`--base-url` > `WELLBORE_BASE_URL` > 配置 > 默认值；密钥优先级：显式 `--key-file` > `WELLBORE_API_KEY` > 保存文件。`WELLBORE_CONFIG_DIR` 可隔离多个使用环境；Windows 默认配置目录是 `C:\Users\<user>\.config\wellbore`。
 
 ## 分步操作与脚本
 
@@ -51,11 +53,13 @@ wellbore jobs events JOB_ID --json       # JSON Lines，每行一个完整快照
 wellbore history --json
 wellbore download ARCHIVE_ID --file well_structure_plot.svg -o figure.svg
 wellbore download ARCHIVE_ID -o archive.zip
-wellbore render well.yaml --edit ARCHIVE_ID --name '测试井' -o output
+wellbore render well.yaml --edit ARCHIVE_ID --name "测试井" -o output
 cat well.yaml | wellbore validate - --input-format yaml --json
 ```
 
-所有命令支持 `--json`、`--base-url`、`--key-file`、`--timeout`、`--no-proxy`。普通命令的 stdout 是单份 JSON；进度和错误走 stderr；模板与 normalize 可直接输出输入文本。`jobs events --json` 为 JSON Lines。现有文件默认拒绝覆盖，显式 `--force` 才替换；下载按文件原子落盘，中断不留下半份最终文件。不自动解压 ZIP。
+只要主图用 `render --main-only`；要按项目图号精确命名，用分步 `download ... -o PATH`。分步 `jobs submit` 不代做预校验，提交前先 `validate`。
+
+所有命令支持 `--json`、`--base-url`、`--key-file`、`--timeout`、`--no-proxy`。普通命令的 stdout 是单份 JSON；进度和错误走 stderr；模板与 normalize 可直接输出输入文本。`jobs events --json` 为 JSON Lines。现有文件默认拒绝覆盖，显式 `--force` 才替换；下载按文件原子落盘，中断不留下半份最终文件。没有硬链接的文件系统（FAT/exFAT、部分 SMB）会先独占预留再替换，极端中断可能留下 0 字节占位文件，重跑前删除或换路径。不自动解压 ZIP。
 
 退出码：0 成功，1 HTTP/服务问题，2 用法/本地输入/文件问题，3 凭据问题，4 网络/客户端等待超时，5 任务 failed/cancelled，130 用户中断。查询成功但任务失败也退出 5。argparse 用法错误使用标准 stderr 提示。
 
@@ -66,13 +70,13 @@ REST 提交没有幂等键：客户端不会自动重试提交。POST 超时或�
 ## 安装 skill
 
 ```sh
-wellbore skill install
-# 指定其他技能根目录
-wellbore skill install --dir /path/to/skills
+wellbore skill install --dir ~/.claude/skills   # Claude Code
+wellbore skill install                          # Codex 默认目录
+wellbore skill install --dir <skills-dir>       # 其他技能根目录
 wellbore skill path
 ```
 
-安装复制到 `<dir>/wellbore`，已有目录拒绝覆盖。重新加载技能后调用 `$wellbore`。仓库入口为 [src/wellbore_cli/skills/wellbore/SKILL.md](https://github.com/elf004-star/drilling-agent-skills/blob/main/src/wellbore_cli/skills/wellbore/SKILL.md)，该目录是唯一来源，随 wheel 打包。根目录不再放指向它的短路径软链接：Windows 检出时软链接退化为内容是路径文本的普通文件，`skills/...` 打不开，而 ZIP 下载与网页浏览本来就无法还原软链接，跨平台行为不一致。技能只按任务需要加载安装、命令、领域、恢复与 API 边界参考。
+安装复制到 `<dir>/wellbore`，已有目录拒绝覆盖。Claude Code 的 Windows 路径是 `--dir "%USERPROFILE%\.claude\skills"`；Codex 默认技能根目录为 `CODEX_HOME/skills`，未设置时为 `~/.codex/skills`。重新加载技能后，Claude Code 用 `/wellbore`，Codex 用 `$wellbore`。仓库入口为 [src/wellbore_cli/skills/wellbore/SKILL.md](https://github.com/elf004-star/drilling-agent-skills/blob/main/src/wellbore_cli/skills/wellbore/SKILL.md)，该目录是唯一来源，随 wheel 打包。根目录不再放指向它的短路径软链接：Windows 检出时软链接退化为内容是路径文本的普通文件，`skills/...` 打不开，而 ZIP 下载与网页浏览本来就无法还原软链接，跨平台行为不一致。技能只按任务需要加载安装、命令、领域、恢复与 API 边界参考。
 
 ## 开发与验证
 

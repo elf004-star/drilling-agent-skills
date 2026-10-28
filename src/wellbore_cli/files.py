@@ -35,7 +35,7 @@ def safe_name(name):
 
 def atomic_save(destination, chunks, force=False):
     path = Path(destination).expanduser()
-    if path.exists() and not force:
+    if os.path.lexists(path) and not force:
         raise ClientError(f"文件已存在：{path}；改用新路径或 --force", 2)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temp = tempfile.mkstemp(prefix=".wellbore-", dir=path.parent)
@@ -51,9 +51,33 @@ def atomic_save(destination, chunks, force=False):
             os.replace(temp, path)
         else:
             # Exclusive publication also protects against concurrent writers.
-            os.link(temp, path)
-            os.unlink(temp)
+            try:
+                os.link(temp, path)
+            except FileExistsError:
+                raise ClientError(f"文件已存在：{path}；改用新路径或 --force", 2) from None
+            except OSError:
+                # FAT/exFAT and some SMB shares have no hard links. Reserve the
+                # destination exclusively, then atomically replace the reservation.
+                if os.path.lexists(path):
+                    raise ClientError(f"文件已存在：{path}；改用新路径或 --force", 2) from None
+                try:
+                    reserved = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                except FileExistsError:
+                    raise ClientError(f"文件已存在：{path}；改用新路径或 --force", 2) from None
+                try:
+                    os.close(reserved)
+                    os.replace(temp, path)
+                except OSError:
+                    try:
+                        os.unlink(path)
+                    except OSError:
+                        pass
+                    raise
     finally:
-        if os.path.exists(temp):
+        try:
             os.unlink(temp)
+        except FileNotFoundError:
+            pass
+        except OSError as exc:
+            print(f"警告：临时文件未能删除：{temp}（{exc}）", file=sys.stderr)
     return {"path": str(path.resolve()), "bytes": count}

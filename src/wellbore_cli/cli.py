@@ -33,7 +33,7 @@ def parser():
     common.add_argument("--timeout", type=positive, default=argparse.SUPPRESS, help="单次请求超时秒数（默认 30）")
     common.add_argument("--no-proxy", action="store_true", default=argparse.SUPPRESS, help="忽略环境代理")
     p = argparse.ArgumentParser(prog="wellbore", parents=[common], description="井身结构图 REST 客户端：校验、生成、等待、下载。",
-                                epilog="首次使用：template straight -o well.yaml → validate well.yaml → render well.yaml -o output")
+                                epilog="首次使用：template straight -o well.yaml → validate well.yaml → render well.yaml --main-only -o output")
     p.add_argument("--version", action="version", version=__version__)
     commands = p.add_subparsers(dest="command", required=True)
 
@@ -68,6 +68,7 @@ def parser():
     submit_args(c)
     wait_args(c)
     c.add_argument("-o", "--output", default="wellbore-output", help="输出目录；默认按 archive_id 再分目录")
+    c.add_argument("--main-only", action="store_true", help="只下载主图，不下载 CSV、规范化输入等附属产物")
     c.add_argument("--force", action="store_true")
     c.add_argument("--skip-validation", action="store_true", help="跳过预校验（渲染仍由服务校验，可能消耗额度）")
     c = leaf(commands, "download", "按历史/产物 ID 下载；无需任务状态仍在内存")
@@ -115,6 +116,16 @@ def terminal_code(status):
     if status.get("status") in ("failed", "cancelled"):
         return 5
     return 0
+
+
+def main_artifact(status, image_format):
+    names = [item.get("name", "") for item in (status.get("files") or [])]
+    preferred = f"well_structure_plot.{image_format}"
+    if preferred in names:
+        return preferred
+    archive_id = status.get("archive_id") or status.get("id", "")
+    raise ClientError(f"任务产物中没有主图 {preferred}；archive_id {archive_id}；"
+                      f"可用文件：{', '.join(names) or '无'}；可用 download --file 取回", 1)
 
 
 def progress(value):
@@ -201,10 +212,13 @@ def run(args):
                 return 5
             archive_id = status.get("archive_id") or status["id"]
             directory = Path(args.output) / safe_name(archive_id)
-            names = [safe_name(item["name"]) for item in status["files"]]
-            names.append("well_data.yaml")
+            if args.main_only:
+                names = [safe_name(main_artifact(status, args.image_format))]
+            else:
+                names = [safe_name(item["name"]) for item in status["files"]]
+                names.append("well_data.yaml")
             # Fail before downloading if any existing file would be overwritten.
-            if not args.force and any((directory / name).exists() for name in names):
+            if not args.force and any(os.path.lexists(directory / name) for name in names):
                 raise ClientError(f"输出目录已有产物：{directory}；选择新目录或 --force", 2)
             downloads = [client.download(archive_id, name, directory / name, args.force) for name in dict.fromkeys(names)]
             emit({"job": status, "archive_id": archive_id, "downloads": downloads}, machine)

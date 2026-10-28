@@ -65,5 +65,6 @@ def private_write(path, data):
     fd = os.open(path, flags, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as out:
         if os.name != "nt":
+            # Windows ignores POSIX modes; setup.md documents the ACL gap.
             os.fchmod(out.fileno(), 0o600)
         out.write(data)

@@ -23,6 +23,8 @@ class Handler(BaseHTTPRequestHandler):
     requests = []
     state = "success"
     artifact = b"a real downloaded artifact"
+    files = [{"name": "well_structure_plot.svg", "bytes": 24},
+             {"name": "stratigraphy.csv", "bytes": 10}]
 
     def log_message(self, *args):
         pass
@@ -38,7 +40,7 @@ class Handler(BaseHTTPRequestHandler):
     def snapshot(self):
         return {"id": "job-1", "archive_id": "archive-1", "status": self.state,
                 "warnings": [{"step": "绘图", "message": "降级"}],
-                "files": [{"name": "plot.svg", "bytes": len(self.artifact)}],
+                "files": [dict(item) for item in self.files],
                 "error": {"detail": "bad input", "traceId": "trace-test"} if self.state == "failed" else None}
 
     def record(self, body=None):
@@ -142,11 +144,69 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(code, 0, err)
         value = json.loads(out)
         self.assertEqual(value["archive_id"], "archive-1")
-        self.assertEqual(len(value["downloads"]), 2)
-        self.assertTrue((self.root / "output/archive-1/plot.svg").exists())
+        self.assertEqual(len(value["downloads"]), 3)
+        self.assertTrue((self.root / "output/archive-1/well_structure_plot.svg").exists())
+        self.assertTrue((self.root / "output/archive-1/stratigraphy.csv").exists())
         self.assertTrue((self.root / "output/archive-1/well_data.yaml").exists())
         self.assertEqual(value["job"]["warnings"][0]["message"], "降级")
         self.assertEqual(sum(method == "POST" and path.startswith("/api/jobs") for method, path, _, _ in Handler.requests), 1)
+
+    def test_render_main_only_downloads_only_plot(self):
+        source = self.root / "input.yaml"
+        source.write_text("stratigraphy: {}")
+        code, out, err = self.invoke(["render", str(source), "--main-only", "--image-format", "svg",
+                                      "-o", str(self.root / "output"), "--json"])
+        self.assertEqual(code, 0, err)
+        value = json.loads(out)
+        self.assertEqual(len(value["downloads"]), 1)
+        self.assertTrue((self.root / "output/archive-1/well_structure_plot.svg").exists())
+        self.assertFalse((self.root / "output/archive-1/stratigraphy.csv").exists())
+        self.assertFalse((self.root / "output/archive-1/well_data.yaml").exists())
+
+    def test_render_main_only_requires_main_artifact(self):
+        source = self.root / "input.yaml"
+        source.write_text("stratigraphy: {}")
+        with patch.object(Handler, "files", [{"name": "plot.svg", "bytes": 1}]):
+            code, out, err = self.invoke(["render", str(source), "--main-only",
+                                          "-o", str(self.root / "output"), "--json"])
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("没有主图", err)
+        self.assertFalse((self.root / "output/archive-1").exists())
+
+    def test_render_main_only_prefers_requested_format(self):
+        source = self.root / "input.yaml"
+        source.write_text("stratigraphy: {}")
+        files = [{"name": "well_structure_plot.png", "bytes": 1},
+                 {"name": "well_structure_plot.svg", "bytes": 1}]
+        with patch.object(Handler, "files", files):
+            code, out, err = self.invoke(["render", str(source), "--main-only", "--image-format", "svg",
+                                          "-o", str(self.root / "output"), "--json"])
+        self.assertEqual(code, 0, err)
+        self.assertEqual(len(json.loads(out)["downloads"]), 1)
+        self.assertTrue((self.root / "output/archive-1/well_structure_plot.svg").exists())
+        self.assertFalse((self.root / "output/archive-1/well_structure_plot.png").exists())
+
+    def test_render_main_only_rejects_other_format(self):
+        source = self.root / "input.yaml"
+        source.write_text("stratigraphy: {}")
+        with patch.object(Handler, "files", [{"name": "well_structure_plot.png", "bytes": 1}]):
+            code, out, err = self.invoke(["render", str(source), "--main-only", "--image-format", "svg",
+                                          "-o", str(self.root / "output"), "--json"])
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("well_structure_plot.svg", err)
+        self.assertIn("archive-1", err)
+        self.assertFalse((self.root / "output/archive-1").exists())
+
+    def test_render_main_only_default_png(self):
+        source = self.root / "input.yaml"
+        source.write_text("stratigraphy: {}")
+        with patch.object(Handler, "files", [{"name": "well_structure_plot.png", "bytes": 1}]):
+            code, out, err = self.invoke(["render", str(source), "--main-only",
+                                          "-o", str(self.root / "output"), "--json"])
+        self.assertEqual(code, 0, err)
+        self.assertTrue((self.root / "output/archive-1/well_structure_plot.png").exists())
 
     def test_failed_job_http_200_is_exit_five_and_no_download(self):
         Handler.state = "failed"
@@ -198,6 +258,55 @@ class ClientTests(unittest.TestCase):
             atomic_save(target, broken(), force=True)
         self.assertEqual(target.read_bytes(), Handler.artifact)
         self.assertEqual(list(self.root.glob(".wellbore-*")), [])
+
+    def test_atomic_save_falls_back_without_hard_links(self):
+        target = self.root / "file"
+        no_links = patch("wellbore_cli.files.os.link", side_effect=OSError("no hard links"))
+        with no_links:
+            result = atomic_save(target, [b"first"])
+        self.assertEqual(target.read_bytes(), b"first")
+        self.assertEqual(result["bytes"], 5)
+        with patch("wellbore_cli.files.os.link", side_effect=OSError("no hard links")):
+            with self.assertRaises(ClientError):
+                atomic_save(target, [b"second"])
+        self.assertEqual(target.read_bytes(), b"first")
+        atomic_save(target, [b"second"], force=True)
+        self.assertEqual(target.read_bytes(), b"second")
+
+    def test_atomic_save_falls_back_when_target_appears_during_write(self):
+        target = self.root / "file"
+        def chunks():
+            yield b"first"
+            target.write_bytes(b"other")
+        with patch("wellbore_cli.files.os.link", side_effect=OSError("no hard links")):
+            with self.assertRaises(ClientError):
+                atomic_save(target, chunks())
+        self.assertEqual(target.read_bytes(), b"other")
+
+    def test_atomic_save_refuses_dangling_symlink(self):
+        target = self.root / "link"
+        missing = self.root / "missing"
+        try:
+            target.symlink_to(missing)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlink not available")
+        with self.assertRaises(ClientError):
+            atomic_save(target, [b"content"])
+        self.assertTrue(target.is_symlink())
+        self.assertFalse(missing.exists())
+
+    def test_atomic_save_force_replaces_symlink_not_target(self):
+        target = self.root / "link"
+        real = self.root / "real"
+        real.write_bytes(b"old")
+        try:
+            target.symlink_to(real)
+        except (OSError, NotImplementedError):
+            self.skipTest("symlink not available")
+        atomic_save(target, [b"new"], force=True)
+        self.assertFalse(target.is_symlink())
+        self.assertEqual(target.read_bytes(), b"new")
+        self.assertEqual(real.read_bytes(), b"old")
 
     def test_path_and_input_limits(self):
         for name in ("../secret", "..\\secret", "..", "", "C:secret", ".. ", "CON.txt"):

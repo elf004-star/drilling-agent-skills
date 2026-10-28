@@ -16,7 +16,7 @@
 
 submit 返回 202 快照；字段包括 id、archive_id、status、warnings、files（name/bytes）、error。
 状态为 queued/running/success/failed/cancelled。GET failed 仍是 200，error 内保存 problem。SSE event 名 status，data 为同形快照；终态后关闭，不做重放。
-normalize 返回完整输入 JSON，不创建任务不占绘图额度。REST submit 的领域校验可在异步渲染中失败，所以默认 render 先 normalize。
+normalize 返回完整输入 JSON，不创建任务不占绘图额度；validate 与 render 的预检都调用该端点，同步阶段的编译/领域错误返回 422 并带 path/line。render 默认先做这一步；分步 jobs submit 不预检，提交前应先 validate。异步渲染仍可能失败，不能把 validate 当作渲染成功的保证。
 非 2xx 使用 application/problem+json，字段包括 type/title/status/detail/instance/traceId/errors。
 
 不实现网页会话限定的注册/登录、资料编辑、密码、Key 管理、历史永久删除、收藏、管理员功能。无需拿测试 Key 尝试这些端点。源代码 MCP 层的幂等键、取消、元数据、分块/预览工具不是公开 REST CLI 能力，不能直接宣称支持。
