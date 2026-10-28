@@ -12,6 +12,10 @@ description: >-
 
 # 井身结构图
 
+**服务需授权**：`wellbore` 访问作者自建的 Wellbore Studio 实例，API Key 不随技能分发。
+没有配置 Key 时 `health`、`validate`、`render` 都会被拒——先按 [安装与认证](references/setup.md)
+配置，再向作者申领 Key（[仓库 issue](https://github.com/elf004-star/drilling-agent-skills/issues)）。
+
 ## 先选择最小流程
 
 1. 读取已有输入，确定用户需要的区块与输出格式。图上读不出来、用户也没给的事实（井斜角、A 点垂深、各段钻井液密度…）先问，不根据井名或井型猜测。先读项目 CLAUDE.md/AGENTS.md 里的井名、图号、开次编号和段名约定。

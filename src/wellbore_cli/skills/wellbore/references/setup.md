@@ -4,6 +4,13 @@
 
 ## 安装 CLI
 
+最省事的是从 PyPI 装（已发布，跨平台）：
+
+```sh
+uv tool install wellbore-cli
+wellbore --version
+```
+
 本机源码（把 `<repo>` 换成实际路径；路径有空格时加引号；Windows 用 `C:\...`）：
 
 ```sh
@@ -17,7 +24,7 @@ wellbore --version
 uv tool install --python 3.11 "git+https://github.com/elf004-star/drilling-agent-skills.git"
 ```
 
-CLI 需要 Python 3.11+，运行时无第三方依赖。未发布到 PyPI 时不要使用索引名称安装。
+CLI 需要 Python 3.11+，运行时无第三方依赖。
 在源码目录也可运行 `uv run --python 3.11 wellbore --help`。不要安装服务端绘图栈。
 
 ## 密钥与基地址
