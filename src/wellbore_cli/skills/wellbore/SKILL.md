@@ -1,6 +1,13 @@
 ---
 name: wellbore
-description: 使用 wellbore CLI 访问 Wellbore Studio REST 服务，校验 YAML/JSON 井数据、生成井身结构图、跟踪异步任务并下载 PNG/SVG、CSV 和规范化输入。用于用户要求绘制直井、定向井、水平井、上倾井、直改平、地层或钻井液图，把已有井身结构图转写成井数据，以及恢复现有任务、查看额度和取回历史产物；不用于钻井方案设计或服务部署。
+description: >-
+  使用 wellbore CLI 访问 Wellbore Studio REST 服务，校验 YAML/JSON 井数据、生成井身结构图、
+  跟踪异步任务并下载 PNG/SVG、CSV 和规范化输入。用于用户要求绘制直井、定向井、水平井、
+  上倾井、直改平、地层或钻井液图，把已有井身结构图转写成井数据，以及恢复现有任务、查看
+  额度和取回历史产物；不用于钻井方案设计或服务部署。
+  Draw wellbore structure diagrams from well data — casing program, drilling
+  fluid density and pressure windows, stratigraphy — and transcribe an existing
+  oil or gas well diagram into YAML/JSON through the wellbore CLI.
 ---
 
 # 井身结构图

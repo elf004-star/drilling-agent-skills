@@ -1,5 +1,7 @@
 # wellbore
 
+[![skills.sh](https://skills.sh/b/elf004-star/drilling-agent-skills)](https://skills.sh/elf004-star/drilling-agent-skills)
+
 井身结构图服务的轻量客户端。Python 3.11+，运行时零第三方依赖，无需安装 matplotlib、字体或服务端代码。内置中文命令帮助、YAML 模板和按需加载的 Claude Code / Codex skill。
 
 以下示例默认 POSIX shell；Windows PowerShell/cmd 请按本机 shell 调整路径、引号和环境变量写法（`$VAR` ↔ `$env:VAR` / `%VAR%`）。
@@ -68,6 +70,14 @@ REST 提交没有幂等键：客户端不会自动重试提交。POST 超时或�
 代理遵循系统/环境配置，HTTPS 使用 `HTTPS_PROXY`；如果本机旧代理不可用，用 `--no-proxy`。本地可用代理示例为 `http://127.0.0.1:8118`。标准库传输不直接支持 SOCKS。
 
 ## 安装 skill
+
+通用的 agent 技能目录（Claude Code、Codex、Cursor 等）走 [skills CLI](https://skills.sh)：
+
+```sh
+npx skills add elf004-star/drilling-agent-skills --skill wellbore
+```
+
+只需本地 CLI 自带的那份技能时，用 `wellbore skill install`：
 
 ```sh
 wellbore skill install --dir ~/.claude/skills   # Claude Code
