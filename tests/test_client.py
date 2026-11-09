@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 from wellbore_cli.cli import main, parser
 from wellbore_cli.client import Client
-from wellbore_cli.config import private_write, resolve, validate_url
+from wellbore_cli.config import DEFAULT_URL, private_write, resolve, validate_url
 from wellbore_cli.errors import ClientError
 from wellbore_cli.files import atomic_save, read_input, safe_name
 
@@ -318,6 +318,21 @@ class ClientTests(unittest.TestCase):
             read_input(str(source))
         with self.assertRaises(ClientError):
             read_input("-", None)
+
+    def test_default_url_is_one_valid_documented_address(self):
+        """默认地址只有一处：代码里的常量就是文档里写的那一个主机。
+
+        换域名时先改 `config.DEFAULT_URL`，README 与 skill 的 API/setup 参考要跟着它；
+        这条守卫让「代码改了、文档没改」当场变红（服务端 #102 那类静默漂的客户端版）。
+        """
+        self.assertEqual(validate_url(DEFAULT_URL), DEFAULT_URL)
+        self.assertTrue(DEFAULT_URL.startswith("https://"))
+        root = Path(__file__).resolve().parents[1]
+        for name in ("README.md", "src/wellbore_cli/skills/wellbore/references/api.md",
+                     "src/wellbore_cli/skills/wellbore/references/setup.md"):
+            self.assertIn(DEFAULT_URL, (root / name).read_text(encoding="utf-8"), name)
+        with patch.dict(os.environ, {"WELLBORE_BASE_URL": ""}):
+            self.assertEqual(resolve()[0], DEFAULT_URL)
 
     def test_config_precedence_and_private_key_permissions(self):
         path = self.root / "key"

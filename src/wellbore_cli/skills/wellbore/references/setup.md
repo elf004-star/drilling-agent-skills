@@ -31,7 +31,9 @@ CLI 需要 Python 3.11+，运行时无第三方依赖。
 
 要求用户在终端交互执行 `wellbore auth set`，输入隐藏。POSIX 保存文件权限为 0600；Windows 上 Python 不额外设置 ACL，文件位于用户配置目录（默认 `C:\Users\<user>\.config\wellbore`），请确保该目录仅本人可读。更稳妥的做法是用环境变量，或把 `--key-file` 放在受 ACL 限制的目录。已有密钥可使用 `WELLBORE_API_KEY` 或 `--key-file`；不要把明文放到参数、URL 或聊天中。检查 `wellbore auth status --json`，不显示密钥。
 
-默认服务为 `https://ccqwell.vip.cpolar.cn`。优先级：`--base-url` > `WELLBORE_BASE_URL` > 本机配置 > 默认；`--key-file` > 环境密钥 > 保存文件。配置目录由 `WELLBORE_CONFIG_DIR` 或 `XDG_CONFIG_HOME` 下的 `wellbore` 确定（默认 `~/.config/wellbore`；Windows 默认 `C:\Users\<user>\.config\wellbore`）。
+默认服务为 `https://wellbore.ichunqian.top`。优先级：`--base-url` > `WELLBORE_BASE_URL` > 本机配置 > 默认；`--key-file` > 环境密钥 > 保存文件。配置目录由 `WELLBORE_CONFIG_DIR` 或 `XDG_CONFIG_HOME` 下的 `wellbore` 确定（默认 `~/.config/wellbore`；Windows 默认 `C:\Users\<user>\.config\wellbore`）。
+
+服务换域名时，客户端改一行基地址即可（`wellbore config set-url <新地址>` 或 `--base-url`）。不确定当前实例自己认为的公网地址时，读公开只读的 `GET /api/config`（返回 `{publicBaseUrl}`）核对，不要从网页文案或日志里猜。
 
 ```sh
 wellbore config set-url https://service.example

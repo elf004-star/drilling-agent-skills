@@ -42,7 +42,7 @@ wellbore render well.yaml --main-only -o output
 
 临时密钥推荐通过 `WELLBORE_API_KEY` 环境变量或 `--key-file <key-file>` 传入。避免把密钥直接写在命令行、URL、脚本或仓库。`auth clear` 仅删除本机存储；撤销 Key 在服务网页完成。POSIX 保存文件权限为 0600；Windows 上 Python 不额外设置 ACL，文件位于用户配置目录（默认 `C:\Users\<user>\.config\wellbore`），请确保该目录仅本人可读。更稳妥的是用环境变量，或把 `--key-file` 放在受 ACL 限制的目录。
 
-基地址默认 `https://ccqwell.vip.cpolar.cn`，可运行 `wellbore config set-url https://your-service.example`。优先级：`--base-url` > `WELLBORE_BASE_URL` > 配置 > 默认值；密钥优先级：显式 `--key-file` > `WELLBORE_API_KEY` > 保存文件。`WELLBORE_CONFIG_DIR` 可隔离多个使用环境；Windows 默认配置目录是 `C:\Users\<user>\.config\wellbore`。
+基地址默认 `https://wellbore.ichunqian.top`，可运行 `wellbore config set-url https://your-service.example`。优先级：`--base-url` > `WELLBORE_BASE_URL` > 配置 > 默认值；密钥优先级：显式 `--key-file` > `WELLBORE_API_KEY` > 保存文件。`WELLBORE_CONFIG_DIR` 可隔离多个使用环境；Windows 默认配置目录是 `C:\Users\<user>\.config\wellbore`。
 
 ## 分步操作与脚本
 
@@ -97,7 +97,7 @@ uv run --python 3.11 python -m unittest discover -s tests -v
 uv build
 ```
 
-详见 [架构说明](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/architecture.md)、[领域上下文](https://github.com/elf004-star/drilling-agent-skills/blob/main/GLOSSARY.md) 和 [契约快照](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/api-contract.md)。线上来源为 [API 文档](https://ccqwell.vip.cpolar.cn/docs) 与 `/openapi.json`。不提供需要网页会话的注册、账户管理、Key 管理或管理员命令；REST 文档没有公开取消端点，因此不伪造取消命令。
+详见 [架构说明](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/architecture.md)、[领域上下文](https://github.com/elf004-star/drilling-agent-skills/blob/main/GLOSSARY.md) 和 [契约快照](https://github.com/elf004-star/drilling-agent-skills/blob/main/docs/api-contract.md)。线上来源为 [API 文档](https://wellbore.ichunqian.top/docs)、`/openapi.json` 与公开只读的 `/api/config`（后者返回这台实例自己认为的公网地址 `{publicBaseUrl}`；地址变更时用它核对，不要从网页或日志里猜）。不提供需要网页会话的注册、账户管理、Key 管理或管理员命令；REST 文档没有公开取消端点，因此不伪造取消命令。
 
 ## 许可
 

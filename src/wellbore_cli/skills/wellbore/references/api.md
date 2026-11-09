@@ -1,10 +1,11 @@
 # REST 契约与边界
 
-核对日期：2026-10-04（北京时间）。来源：[线上手写文档](https://ccqwell.vip.cpolar.cn/docs)、[OpenAPI](https://ccqwell.vip.cpolar.cn/openapi.json)，以及服务源码提交 dfc4e7efe5f9353aec969dbee2100eb1f67a121d。若服务升级，以线上校验与实际响应为准；文档文字与领域源码不一致时不猜测字段。
+核对日期：2026-10-04（北京时间）。来源：[线上手写文档](https://wellbore.ichunqian.top/docs)、[OpenAPI](https://wellbore.ichunqian.top/openapi.json)，以及服务源码提交 dfc4e7efe5f9353aec969dbee2100eb1f67a121d。若服务升级，以线上校验与实际响应为准；文档文字与领域源码不一致时不猜测字段。
 
 | CLI | REST | 认证 |
 |---|---|---|
 | health | GET /api/health | 无 |
+| config | GET /api/config | 无；返回 `{publicBaseUrl}`，用于核对这台实例的公网地址 |
 | validate / normalize | POST /api/input/normalize，YAML/JSON 原始 body | 无 |
 | render / jobs submit | POST /api/jobs?image_format=png 或 svg；可带 edit/project_name | Bearer |
 | jobs status / wait | GET /api/jobs/{id} | 源码公开，CLI 为一致性携带 Bearer |

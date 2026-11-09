@@ -1,6 +1,8 @@
 # 服务契约核对记录
 
-2026-10-04 读取 https://ccqwell.vip.cpolar.cn/docs 与 /openapi.json，核对服务仓库提交 dfc4e7efe5f9353aec969dbee2100eb1f67a121d。
+2026-11-10 补记：服务新增公开只读 `GET /api/config`（无认证，返回 `{publicBaseUrl}`）。它是这台实例自己认为的公网地址，签名下载链接与 MCP Host / Origin 白名单都从同一份地址派生；客户端换域名时以它为准，不要从网页文案或日志里猜。下面那份 2026-10-04 的快照不改写，作为当时的核对记录。
+
+2026-10-04 读取 https://wellbore.ichunqian.top/docs 与 /openapi.json，核对服务仓库提交 dfc4e7efe5f9353aec969dbee2100eb1f67a121d。
 
 采用公开 REST 的输入规范化、异步 jobs、SSE、身份/额度/历史、认证产物下载。没有 REST 取消或提交幂等键。MCP 的幂等、安全分块、元数据等不能当作 REST 能力。CLI 没有复制网页 Cookie 管理操作。
 

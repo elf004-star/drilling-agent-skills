@@ -6,7 +6,8 @@ from urllib.parse import urlsplit
 
 from .errors import ClientError
 
-DEFAULT_URL = "https://ccqwell.vip.cpolar.cn"
+#: 正式服务的基地址。**只有这一处**：文档与测试从它出发，换域名不该在几个文件里各改一遍。
+DEFAULT_URL = "https://wellbore.ichunqian.top"
 
 
 def config_dir():
