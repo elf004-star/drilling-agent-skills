@@ -16,3 +16,5 @@
 2026-10-28，GitHub Actions run 40660934806（提交 7bf2c72）：`test (ubuntu-latest)`、`test (macos-latest)`、`test (windows-latest)` 全部 success。
 
 2026-10-28，Release run 40661727127（tag `v0.2.0`）：TestPyPI 发布成功，从 TestPyPI 安装验证成功，PyPI 发布成功。从 PyPI 隔离安装 `wellbore-cli==0.2.0` 后 `wellbore --version` 为 `0.2.0`，`wellbore render --help` 包含 `--main-only`。
+
+2026-11-19，提交 dac030a（tag `v0.2.1`）：本机 30 项单元测试通过；Release run 44345543204 的构建、TestPyPI 发布与从 TestPyPI 安装验证均成功，人工批准 `pypi` 环境后 PyPI 发布成功。从 PyPI 安装 `wellbore-cli==0.2.1` 后 `wellbore --version` 为 `0.2.1`，安装包的 `config.DEFAULT_URL` 为 `https://wellbore.ichunqian.top`。0.2.0 是 2026-10-28 打的包，默认地址仍是旧 cpolar 域名，已由 0.2.1 取代。
