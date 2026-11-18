@@ -7,6 +7,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
+from . import __version__
 from .errors import ClientError
 from .files import atomic_save, safe_name
 
@@ -37,7 +38,7 @@ class Client:
     def open(self, method, path, body=None, content_type=None, auth=True, params=None, timeout=None):
         if auth and not self.key:
             raise ClientError("请设置 WELLBORE_API_KEY，或运行 wellbore auth set", 3)
-        headers = {"Accept": "application/json", "User-Agent": "wellbore-cli/0.1.0"}
+        headers = {"Accept": "application/json", "User-Agent": f"wellbore-cli/{__version__}"}
         if auth:
             headers["Authorization"] = "Bearer " + self.key
         if content_type:

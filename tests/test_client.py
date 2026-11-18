@@ -334,6 +334,14 @@ class ClientTests(unittest.TestCase):
         with patch.dict(os.environ, {"WELLBORE_BASE_URL": ""}):
             self.assertEqual(resolve()[0], DEFAULT_URL)
 
+    def test_user_agent_tracks_declared_version(self):
+        """UA 版本号与包版本同源，别再出现硬编码 0.1.0 那种悄悄过期。"""
+        from wellbore_cli import __version__
+        self.client.open("GET", "/api/health").read()
+        self.assertEqual(Handler.requests[-1][2]["User-Agent"], f"wellbore-cli/{__version__}")
+        root = Path(__file__).resolve().parents[1]
+        self.assertIn(f'version = "{__version__}"', (root / "pyproject.toml").read_text(encoding="utf-8"))
+
     def test_config_precedence_and_private_key_permissions(self):
         path = self.root / "key"
         private_write(path, "file-secret\n")
